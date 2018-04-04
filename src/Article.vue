@@ -9,9 +9,11 @@
   export default{
     data() {
       return {
+        view: 'detail',
+        type: 'news'
       };
     },
-    props: ['ncmb'],
+    props: [],
     created() {
       // Vue.set(me, 'items', items);
     },

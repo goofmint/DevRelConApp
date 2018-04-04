@@ -31,6 +31,7 @@ class NCMBConf {
     if (!json) {
       return [];
     }
+    let articles;
     try{
       articles = JSON.parse(json);
     }catch(e) {
@@ -38,9 +39,14 @@ class NCMBConf {
       return [];
     }
     const Item = this.ncmb.DataStore(name);
+    const Speaker = this.ncmb.DataStore('Speakers');
     const ary = [];
-    for (article of articles) {
-      ary.push(new Item(article))
+    for (let article of articles) {
+      const item = new Item(article);
+      if (name === 'Sessions') {
+        item.speaker = new Speaker(article.speaker)
+      }
+      ary.push(item);
     }
     return ary;
   }
@@ -49,24 +55,28 @@ class NCMBConf {
     return this.getLatestArticle(this.consts.news)
   }
   
-  getLatestSession() {
+  getLatestSessions() {
     return this.getLatestArticle(this.consts.sessions);
   }
   
-  getLatestSpeaker() {
+  getLatestSpeakers() {
     return this.getLatestArticle(this.consts.speakers);
   }
   
-  getLatestSponnsors() {
+  getLatestSponsors() {
     return this.getLatestArticle(this.consts.sponsors);
   }
   
   getLatestArticle(name) {
     return new Promise((res, rej) => {
-      if (!window.navigator.online) {
+      if (!window.navigator.onLine) {
         return res([]);
       }
-      const Item = this.ncmb.DataStore(name);
+      let Item = this.ncmb.DataStore(name);
+      switch (name) {
+      case 'Sessions':
+        Item = Item.include('speaker');
+      }
       Item
         .fetchAll()
         .then((articles) => {

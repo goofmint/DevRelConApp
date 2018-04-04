@@ -1,11 +1,16 @@
 <template>
   <v-ons-page>
+    <p style="text-align: center">
+      <v-ons-segment :index.sync="segmentIndex" style="width: 220px" @postchange="changeTrack()">
+        <button>Fuji</button>
+        <button>Sakura</button>
+      </v-ons-segment>
+    </p>
     <v-ons-list>
-      <v-ons-list-item v-for="session in sessions" @click="toSession(session)">
+      <v-ons-list-item v-for="session in sessions" @click="toSession(session)" v-bind:style="style(session)">
         <v-ons-row v-bind:style="height(session)">
           <v-ons-col
-            v-bind:style="style(session)"
-            width="75px">
+            width="60px">
             {{ session.time }}</v-ons-col>
           <v-ons-col>
             <strong>{{ session.title }}</strong>
@@ -22,58 +27,31 @@
   export default{
     data() {
       return {
-        online: window.navigator.online,
         segmentIndex: 0,
-        sessions: [
-          {
-            time: '8:00 AM',
-            speaker: null,
-            title: 'Registration and light breakfast',
-            color: 'grey',
-            room: 'both'
-          },
-          {
-            time: '8:55 AM',
-            speaker: {
-              name: 'Atsushi Nakatsugawa',
-              company: 'MOONGIFT',
-              objectId: 'bbb'
-            },
-            title: 'Welcome to DevRelCon Tokyo 2017!',
-            color: 'red',
-            room: 'both'
-          },
-          {
-            time: '9:10 AM',
-            speaker: {
-              name: 'John Britton',
-              company: 'GitHub',
-              objectId: 'ccc'
-            },
-            title: 'Keynote: Marketing to Developers',
-            description: 'this is test content. this is test content. this is test content. this is test content. this is test content. this is test content. this is test content. ',
-            color: 'blue',
-            room: 'both'
-          }
-        ]
+        sessions: [],
       };
     },
-    props: ['ncmb', 'session'],
+    props: [],
     created() {
-      // Vue.set(me, 'items', items);
+      const me = this;
+      if (!this.allSessions) return;
+      this.changeTrack();
     },
     methods: {
       // Change track
       changeTrack(e) {
-        console.log(e)
-        //
+        const room = this.segmentIndex === 0 ? 'Fuji' : 'Sakura';
+        Vue.set(this, 'sessions', this.allSessions.filter(session => [room, 'Both'].indexOf(session.room) > -1));
       },
       
       toSession(e) {
         this.$emit('push-page', {
-          page: Session, 
-          options: {
-            session: e
+          extends: Session, 
+          data() {
+            return {
+              session: e,
+              online: this.online
+            }
           }
         });
         this.$emit('changeTitle', {
@@ -86,7 +64,7 @@
         return `height: ${session.speaker ? 4 : 3}em`;
       },
       style(session) {
-        return `border-right: 2px ${session.color} solid;margin-right:10px`;
+        return `border-left: 2px ${session.color} solid;`;
       }
     },
     computed: {

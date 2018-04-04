@@ -36,7 +36,9 @@
       return {
         segmentIndex: 0,
         online: window.navigator.onLine,
-        articles: [article, article, article]
+        articles: [article, article, article],
+        view: 'list',
+        type: 'news'
       };
     },
     props: ['ncmb'],

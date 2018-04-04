@@ -1,26 +1,31 @@
-<template id="nav">
+<template>
+  <v-ons-navigator swipeable
+    :page-stack="pageStack"
+    @changeTitle="changeTitle"
+    @push-page="pageStack.push($event)"
+  ></v-ons-navigator>
 </template>
-
 <script>
   import Vue from 'vue';
-  import App from './App';
   export default{
     data() {
       return {
-        pageStack: [App]
+        pageStack: [this.list]
       };
     },
-    props: ['ncmb'],
-    created() {
-      // Vue.set(me, 'items', items);
+    props: [
+      'list',
+      'online',
+      'news', 'article',
+      'allSessions', 'session',
+      'speakers', 'speaker'
+    ],
+    created(e) {
     },
     methods: {
-      pushPage(e) {
-        console.log(e)
-        this.pageStack.push(e);
+      changeTitle(options) {
+        this.$emit('changeTitle', options);
       }
-    },
-    computed: {
     }
   };
 </script>
