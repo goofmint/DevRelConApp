@@ -13,13 +13,7 @@
         pageStack: [this.list]
       };
     },
-    props: [
-      'list',
-      'online',
-      'news', 'article',
-      'allSessions', 'session',
-      'speakers', 'speaker'
-    ],
+    props: ['list'],
     created(e) {
     },
     methods: {

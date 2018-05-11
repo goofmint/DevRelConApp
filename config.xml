@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<widget xmlns="http://www.w3.org/ns/widgets" id="com.example.helloworld" version="1.0.0">
-  <name>monaca_vue</name>
+<widget xmlns="http://www.w3.org/ns/widgets" id="jp.moongift.devrelcon" version="1.0.0">
+  <name>DevRelCon Tokyo</name>
   <description/>
   <author/>
   <access origin="*"/>

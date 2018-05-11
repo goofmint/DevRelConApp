@@ -27,9 +27,21 @@
       };
     },
     created() {
-      // Vue.set(me, 'items', items);
+      const me = this;
+      if (!this.ncmb) {
+        return false;
+      }
+      me.setSpeakers(me.ncmb.getSpeakers());
+      if (!this.online) return;
+      this.ncmb.getLatestSpeakers()
+        .then(speakers => {
+          me.setSpeakers(speakers);
+        });
     },
     methods: {
+      setSpeakers(speakers) {
+        Vue.set(this, 'speakers', speakers);
+      },
       toSpeaker(e) {
         this.$emit('push-page', {
           extends: Speaker, 

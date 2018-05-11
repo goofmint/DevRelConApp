@@ -124,17 +124,17 @@ module.exports = {
       chunksSortMode: 'dependency',
       externalCSS: ['components/loader.css'],
       externalJS: ['components/loader.js'],
-      minify: {
+      minify: false/*{
         caseSensitive: true,
         collapseWhitespace: true,
         conservativeCollapse: true,
         removeAttributeQuotes: true,
         removeComments: true
-      }
+      }*/
     }),
     new webpack.NoErrorsPlugin(),
     new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.UglifyJsPlugin(),
+    // new webpack.optimize.UglifyJsPlugin(),
     new CopyWebpackPlugin([{
       from: path.join(__dirname, 'src', 'public'),
       ignore: ['index.html.ejs']

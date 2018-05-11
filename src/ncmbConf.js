@@ -1,6 +1,8 @@
 const NCMB = require('ncmb');
-const applicationKey = 'd288714a5a801f4ccaaac99c87df41d35e38b5804a9ecbcd2026c1901e914fc0';
-const clientKey = '3395ea58a34af1edb5009c9d15b3379761539ef3c8eb0ee0d797274e122359b8';
+const applicationKey = 'ef02eac62fe100e488569052a486f67e3d33081fa5a52fb805f7516bebc70808';
+const clientKey = '2aa463efd007d5858ec91ffb924117b4a690802516c5efcb731891103290a566';
+const senderId = '';
+import Vue from 'vue';
 
 import {config} from './config';
 
@@ -13,6 +15,108 @@ class NCMBConf {
       speakers: 'Speakers',
       sponsors: 'Sponsors'
     }
+    this.favorites = [];
+    const me = this;
+    if (this.isLogin()) {
+      this.allFavorites()
+        .then(res => {
+          console.log(res)
+          me.favorites = res;
+        })
+        .catch(err => console.log(err));
+    }
+  }
+  login(authData) {
+    const me = this;
+    return new Promise((res, rej) => {
+      this.ncmb.User.loginWith('facebook', authData)
+        .then(() => {
+          return this.allFavorites();
+        })
+        .then(results => {
+          me.favorites = results;
+          res();
+        })
+    })
+  }
+  isLogin() {
+    return this.ncmb.User.getCurrentUser();
+  }
+  
+  idAuth(userName, password) {
+    return new Promise((res, rej) => {
+      this.ncmb.User.login(userName, password)
+        .then(response => {
+          res(res);
+        })
+        .catch(err => {
+          rej(err);
+        })
+    })
+  }
+  
+  allFavorites() {
+    return new Promise((res, rej) => {
+      const user = this.ncmb.User.getCurrentUser();
+      const Sessions = this.ncmb.DataStore(this.consts.sessions);
+      Sessions
+        .include('speaker')
+        .relatedTo(user, 'sessions')
+        .order('time')
+        .fetchAll()
+        .then(result => {
+          res(result);
+        })
+        .catch(err => {
+          rej(err)
+        });
+    })
+  }
+  
+  favorited(session) {
+    return this.favorites.filter(favorite => favorite.objectId === session.objectId)[0];
+  }
+  
+  addFavorite(session) {
+    this.favorites.push(session);
+    const user = this.ncmb.User.getCurrentUser();
+    const relation = new this.ncmb.Relation();
+    relation.add(session);
+    return user
+      .set('sessions', relation)
+      .update();
+  }
+  
+  removeFavorite(session) {
+    this.favorites = this.favorites.filter(favorite => favorite.objectId !== session.objectId);
+    const user = this.ncmb.User.getCurrentUser();
+    const relation = new this.ncmb.Relation();
+    relation.remove(session);
+    return user
+      .set('sessions', relation)
+      .update();
+  }
+  
+  getToken() {
+    return new Promise((res, rej) => {
+      window.NCMB.monaca.setDeviceToken(
+        applicationKey,
+        clientKey,
+        senderId,
+        success => res(),
+        err => rej(err)
+      )
+    });
+  }
+  getNotificationStatus() {
+    return new Promise((res, rej) => {
+      PushNotificationsStatus.getStatus(function (status) {
+        alert(status)
+        if (status === 'authorized') {
+          console.log('Push notifications are enabled');
+        }
+      });
+    })
   }
   getNews() {
     return this.getCache(this.consts.news);
@@ -39,12 +143,16 @@ class NCMBConf {
       return [];
     }
     const Item = this.ncmb.DataStore(name);
-    const Speaker = this.ncmb.DataStore('Speakers');
+    const Speaker = this.ncmb.DataStore(this.consts.speakers);
+    const Session = this.ncmb.DataStore(this.consts.sessions);
     const ary = [];
     for (let article of articles) {
       const item = new Item(article);
       if (name === 'Sessions') {
-        item.speaker = new Speaker(article.speaker)
+        item.speaker = new Speaker(article.speaker);
+      }
+      if (name === 'Speakers') {
+        item.session = new Session(article.session);
       }
       ary.push(item);
     }
@@ -75,7 +183,14 @@ class NCMBConf {
       let Item = this.ncmb.DataStore(name);
       switch (name) {
       case 'Sessions':
-        Item = Item.include('speaker');
+        Item = Item.include('speaker').order('time');
+        break;
+      case 'Speakers':
+        Item = Item.include('session').order('name');
+        break;
+      case 'Sponsors':
+        Item = Item.order('rank');
+        break;
       }
       Item
         .fetchAll()

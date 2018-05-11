@@ -32,7 +32,6 @@
         catch: 'http://placekitten.com/g/120/120',
         time: '1 day ago'
       };
-
       return {
         segmentIndex: 0,
         online: window.navigator.onLine,
@@ -41,11 +40,25 @@
         type: 'news'
       };
     },
-    props: ['ncmb'],
+    props: [],
     created() {
       // Vue.set(me, 'items', items);
+      const me = this;
+      if (!this.ncmb) {
+        return false;
+      }
+      me.setNews(me.ncmb.getNews());
+      if (!this.online) return;
+      this.ncmb.getLatestNews()
+        .then(news => {
+          me.setNews(news);
+        });
     },
     methods: {
+      setNews(news) {
+        Vue.set(this, 'articles', news);
+      },
+      
       toArticle(e) {
         this.$emit('push-page', {
           page: Article,
