@@ -6,7 +6,7 @@
       </div>
       <div class="title">{{ session.title }}</div>
       <p class="right"> by 
-        <v-ons-button modifier="quiet" @click="toSpeaker">{{ session.speaker.name }}</v-ons-button>
+        <v-ons-button modifier="quiet" @click="toSpeaker(session.speaker)">{{ session.speaker.name }}</v-ons-button>
       </p>
       <p>
         <v-ons-list-item modifier="longdivider">{{ session.time }}, {{ roomLabel }}</v-ons-list-item>
@@ -32,13 +32,14 @@
       console.log('this.session', this.session)
     },
     methods: {
-      toSpeaker() {
+      toSpeaker(e) {
         const me = this;
+        e.session = me.session;
         this.$emit('push-page', {
           extends: Speaker, 
           data() {
             return {
-              speaker: me.session.speaker,
+              speaker: e,
               online: me.online
             }
           }

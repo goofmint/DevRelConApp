@@ -10,7 +10,12 @@
       </p>
     </v-ons-card>
     <p style="text-align: center">
-      <v-ons-button @click="getToken" modifier="cta" style="margin: 10px 0" v-show="!notification">Get push notification</v-ons-button>
+      <v-ons-button @click="getToken" modifier="cta" style="margin: 10px 0" v-show="!notification">
+        Get push notification
+      </v-ons-button>
+      <v-ons-button @click="openNotification" modifier="cta" style="margin: 10px 0" v-show="notification">
+        Open Notification Setting
+      </v-ons-button>
     </p>
     <p style="margin: 0 10px">
       We never send spam message. You can stop push notification anytime.
@@ -46,15 +51,16 @@
     props: [],
     created() {
       const me = this;
-      if (!this.ncmb) {
-        return false;
-      }
       me.setSponsors(me.ncmb.getSponsors());
       if (!this.online) return;
       this.ncmb.getLatestSponsors()
         .then(sponsors => {
           me.setSponsors(sponsors);
         });
+      this.ncmb.getNotificationStatus()
+        .then(status => {
+          me.notification = (status === 'authorized');
+        })
     },
     methods: {
       setSponsors(sponsors) {
@@ -63,6 +69,10 @@
       style(sponsor) {
         return `height: ${sponsor.size}px; width: ${sponsor.size}px; text-align: center`;
       },
+      openNotification() {
+        cordova.exec(() => console.log(), () => console.log(), "NativeSettings", "open", 'application');
+      },
+      
       getToken() {
         this.ncmb
           .getToken()

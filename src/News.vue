@@ -2,18 +2,12 @@
   <v-ons-page>
     
     <v-ons-list>
-      <div v-for="article in articles" @click="toArticle(article)">
-        <v-ons-list-header>{{ article.time }}</v-ons-list-header>
+      <div v-for="article in news" @click="toArticle(article)">
+        <v-ons-list-header>{{ dateFormat(article.published.iso, '%b %d, %Y') }}</v-ons-list-header>
         <v-ons-list-item tappable>
-          <div class="left" v-if="online">
-            <img class="list-item__thumbnail" style="width:60px;height:60px" v-bind:src="article.catch">
-          </div>
-          <div v-else style="padding-right: 5px;">
-            <v-ons-icon icon="ion-person-stalker" size="60px"></v-ons-icon>
-          </div>
           <div class="center">
             <span class="list-item__title">{{ article.title }}</span>
-            <span class="list-item__subtitle">{{ article.description }}</span>
+            <span class="list-item__subtitle" style="padding-top: 5px">{{ truncate(strip_tags(article.content), 200) }}</span>
           </div>
         </v-ons-list-item>
       </div>
@@ -23,21 +17,10 @@
 <script>
   import Vue from 'vue';
   import Article from './article';
+  const strftime = require('strftime')
   export default{
     data() {
-      const article = {
-        id: 1,
-        title: 'We will start long juarny',
-        description: 'On the Internet On the Internet On the Internet On the Internet On the Internet...',
-        catch: 'http://placekitten.com/g/120/120',
-        time: '1 day ago'
-      };
       return {
-        segmentIndex: 0,
-        online: window.navigator.onLine,
-        articles: [article, article, article],
-        view: 'list',
-        type: 'news'
       };
     },
     props: [],
@@ -47,6 +30,7 @@
       if (!this.ncmb) {
         return false;
       }
+      
       me.setNews(me.ncmb.getNews());
       if (!this.online) return;
       this.ncmb.getLatestNews()
@@ -55,21 +39,41 @@
         });
     },
     methods: {
+      dateFormat(date, format) {
+        return strftime(format, new Date(date));
+      },
+      strip_tags(html) {
+        const tmp = document.createElement("DIV");
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || "";
+      },
+      
+      truncate(text, length) {
+        if (text.length > length) {
+          return text.substring(0, length) + '...';
+        }
+        return text;
+      },
+      
       setNews(news) {
-        Vue.set(this, 'articles', news);
+        Vue.set(this, 'news', news);
       },
       
       toArticle(e) {
         this.$emit('push-page', {
-          page: Article,
-          options: {
-            article: e
+          extends: Article, 
+          data() {
+            return {
+              article: e,
+              online: this.online
+            }
           }
         });
         this.$emit('changeTitle', {
           title: '',
+          article: e,
           back: 'News'
-        })
+        });
       }
     }
   };

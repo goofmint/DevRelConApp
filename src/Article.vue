@@ -1,7 +1,10 @@
 <template>
   <v-ons-page>
-    <p>{{ article.title }}</p>
-    <p></p>
+    <v-ons-card>
+      <div class="title">{{ article.title }}</div>
+      <div class="content" v-html="changeImagePath(article.content)">
+      </div>
+    </v-ons-card>
   </v-ons-page>
 </template>
 <script>
@@ -9,8 +12,6 @@
   export default{
     data() {
       return {
-        view: 'detail',
-        type: 'news'
       };
     },
     props: [],
@@ -18,6 +19,11 @@
       // Vue.set(me, 'items', items);
     },
     methods: {
+      changeImagePath(text) {
+        text = text.replace(/<img src="/g, '<img width="100%" src="https://tokyo-2018.devrel.net');
+        console.log(text);
+        return text;
+      }
     }
   };
 </script>

@@ -1,10 +1,8 @@
 const NCMB = require('ncmb');
-const applicationKey = 'ef02eac62fe100e488569052a486f67e3d33081fa5a52fb805f7516bebc70808';
-const clientKey = '2aa463efd007d5858ec91ffb924117b4a690802516c5efcb731891103290a566';
-const senderId = '';
 import Vue from 'vue';
 
 import {config} from './config';
+const {PushNotificationsStatus} = window;
 
 class NCMBConf {
   constructor(applicationKey, clientKey) {
@@ -20,7 +18,6 @@ class NCMBConf {
     if (this.isLogin()) {
       this.allFavorites()
         .then(res => {
-          console.log(res)
           me.favorites = res;
         })
         .catch(err => console.log(err));
@@ -99,10 +96,13 @@ class NCMBConf {
   
   getToken() {
     return new Promise((res, rej) => {
+      alert(true);
+      debugger;
+      console.log(window)
       window.NCMB.monaca.setDeviceToken(
-        applicationKey,
-        clientKey,
-        senderId,
+        config.applicationKey,
+        config.clientKey,
+        config.senderId,
         success => res(),
         err => rej(err)
       )
@@ -110,12 +110,8 @@ class NCMBConf {
   }
   getNotificationStatus() {
     return new Promise((res, rej) => {
-      PushNotificationsStatus.getStatus(function (status) {
-        alert(status)
-        if (status === 'authorized') {
-          console.log('Push notifications are enabled');
-        }
-      });
+      if (typeof cordova == 'undefined') res();
+      cordova.exec(res, rej, 'PushNotificationsStatus', 'getStatus');
     })
   }
   getNews() {
@@ -186,7 +182,10 @@ class NCMBConf {
         Item = Item.include('speaker').order('time');
         break;
       case 'Speakers':
-        Item = Item.include('session').order('name');
+        Item = Item
+          .include('session')
+          .order('name')
+          .equalTo('list', 'yes');
         break;
       case 'Sponsors':
         Item = Item.order('rank');

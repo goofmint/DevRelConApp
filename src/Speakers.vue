@@ -3,11 +3,11 @@
     <v-ons-row>
       <v-ons-col width="50%" v-for="speaker in speakers">
         <v-ons-card @click="toSpeaker(speaker)">
-          <div v-if="online">
-            <img v-bind:src="speaker.picture" alt="Onsen UI" style="width: 100%">
+          <div v-if="speaker.image">
+            <img v-bind:src="speaker.image" v-bind:alt="speaker.name" style="width: 100%">
           </div>
           <div v-else>
-            <v-ons-icon icon="ion-person-stalker" size="150px"></v-ons-icon>
+            <img src="images/user.svg" v-bind:alt="speaker.name" style="width: 100%">
           </div>
           <div class="title name">
             {{ speaker.name }}
@@ -40,7 +40,32 @@
     },
     methods: {
       setSpeakers(speakers) {
-        Vue.set(this, 'speakers', speakers);
+        const newSpeakers = [];
+        for (let speaker of speakers) {
+          speaker.original_image = speaker.image;
+          speaker.image = null;
+          newSpeakers.push(speaker);
+        }
+        Vue.set(this, 'speakers', newSpeakers);
+        this.setImage(newSpeakers);
+      },
+      setImage(speakers) {
+        for (let i = 0; i < speakers.length; i += 1) {
+          const speaker = speakers[i];
+          this.loadImage(i, speakers);
+        }
+      },
+      loadImage(i, speakers) {
+        const speaker = speakers[i];
+        const image = new Image();
+        const me = this;
+        image.onload = () => {
+          speaker.image = image.src;
+          delete speaker.original_image;
+          speakers[i] = speaker;
+          Vue.set(me, 'speakers', speakers);
+        }
+        image.src = `https://tokyo-2018.devrel.net${speaker.original_image}`;
       },
       toSpeaker(e) {
         this.$emit('push-page', {

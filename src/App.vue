@@ -46,7 +46,7 @@
   export default{
     data() {
       const data = {
-        activeIndex: 1,
+        activeIndex: 2,
         pageStack: [],
         headerTitle: 'News',
         back: false,
