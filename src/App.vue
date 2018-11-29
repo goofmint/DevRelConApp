@@ -57,7 +57,7 @@
         dialogVisible: false,
         favorited: 'ion-ios-star-outline'
       };
-      const ncmb = this.ncmb;
+      const ncmb = this.$store.state.ncmb;
       data.tabs = [
         {
           icon: this.md() ? null : 'ion-ios-bell',
@@ -149,7 +149,7 @@
       ];
       return data;
     },
-    props: ['ncmb'],
+    props: [],
     components: {
       LoginDialog
     },
@@ -162,36 +162,29 @@
         return this.$ons.platform.isAndroid();
       },
       
-      addFavorite() {
-        const me = this;
-        me.favorited = 'ion-ios-star'
-        if (this.ncmb.isLogin()) {
-          this.ncmb
-            .addFavorite(this.session)
-            .then(res => {})
-            .catch(err => {
-              me.favorited = 'ion-ios-star-outline';
-              alert(err);
-            })
-        } else {
-          this.dialogVisible = true
+      async addFavorite() {
+        this.favorited = 'ion-ios-star'
+        if (!this.$store.state.ncmb.isLogin()) {
+          this.dialogVisible = true;
+          return;
+        }
+        try {
+          await this.$store.state.ncmb.addFavorite(this.session);
+        } catch (err) {
+          this.favorited = 'ion-ios-star-outline';
+          alert(err);
         }
       },
       
-      removeFavorite() {
-        const me = this;
-        me.favorited = 'ion-ios-star-outline';
-        if (this.ncmb.isLogin()) {
-          this.ncmb
-            .removeFavorite(this.session)
-            .then(res => {
-            })
-            .catch(err => {
-              me.favorited = 'ion-ios-star';
-              alert(err);
-            })
-        } else {
-          this.dialogVisible = true
+      async removeFavorite() {
+        this.favorited = 'ion-ios-star-outline';
+        if (!this.$store.state.ncmb.isLogin()) {
+        }
+        try {
+          await this.$store.state.ncmb.removeFavorite(this.session);
+        } catch (err) {
+          me.favorited = 'ion-ios-star';
+          alert(err);
         }
       },
       
@@ -241,12 +234,12 @@
         this.dialogVisible = false;
       },
       isFavorite() {
-        if (!this.ncmb.isLogin()) {
+        if (!this.$store.state.ncmb.isLogin()) {
           this.favorited = 'ion-ios-star-outline';
           return;
         }
         if (!this.session) return;
-        this.favorited = this.ncmb.favorited(this.session) ? 'ion-ios-star' : 'ion-ios-star-outline';
+        this.favorited = this.$store.state.ncmb.favorited(this.session) ? 'ion-ios-star' : 'ion-ios-star-outline';
       }
     },
     computed: {

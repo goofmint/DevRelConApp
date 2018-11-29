@@ -23,82 +23,60 @@ class NCMBConf {
         .catch(err => console.log(err));
     }
   }
-  login(authData) {
-    const me = this;
-    return new Promise((res, rej) => {
-      this.ncmb.User.loginWith('facebook', authData)
-        .then(() => {
-          return this.allFavorites();
-        })
-        .then(results => {
-          me.favorites = results;
-          res();
-        })
-    })
+  
+  async login(authData) {
+    await this.ncmb.User.loginWith('facebook', authData);
+    this.favorites = await this.allFavorites();
   }
+  
   isLogin() {
     return this.ncmb.User.getCurrentUser();
   }
   
-  idAuth(userName, password) {
-    return new Promise((res, rej) => {
-      this.ncmb.User.login(userName, password)
-        .then(response => {
-          res(res);
-        })
-        .catch(err => {
-          rej(err);
-        })
-    })
+  async idAuth(userName, password) {
+    return await this.ncmb.User.login(userName, password);
   }
   
-  allFavorites() {
-    return new Promise((res, rej) => {
-      const user = this.ncmb.User.getCurrentUser();
-      const Sessions = this.ncmb.DataStore(this.consts.sessions);
-      Sessions
+  async allFavorites() {
+    const user = this.ncmb.User.getCurrentUser();
+    const Sessions = this.ncmb.DataStore(this.consts.sessions);
+    try {
+      return await Sessions
         .include('speaker')
         .relatedTo(user, 'sessions')
         .order('time')
-        .fetchAll()
-        .then(result => {
-          res(result);
-        })
-        .catch(err => {
-          rej(err)
-        });
-    })
+        .fetchAll();
+    } catch (err) {
+      return err;
+    }
   }
   
   favorited(session) {
     return this.favorites.filter(favorite => favorite.objectId === session.objectId)[0];
   }
   
-  addFavorite(session) {
+  async addFavorite(session) {
     this.favorites.push(session);
     const user = this.ncmb.User.getCurrentUser();
     const relation = new this.ncmb.Relation();
     relation.add(session);
-    return user
+    return await user
       .set('sessions', relation)
       .update();
   }
   
-  removeFavorite(session) {
+  async removeFavorite(session) {
     this.favorites = this.favorites.filter(favorite => favorite.objectId !== session.objectId);
     const user = this.ncmb.User.getCurrentUser();
     const relation = new this.ncmb.Relation();
     relation.remove(session);
-    return user
+    return await user
       .set('sessions', relation)
       .update();
   }
   
   getToken() {
     return new Promise((res, rej) => {
-      alert(true);
-      debugger;
-      console.log(window)
       window.NCMB.monaca.setDeviceToken(
         config.applicationKey,
         config.clientKey,
@@ -108,6 +86,7 @@ class NCMBConf {
       )
     });
   }
+  
   getNotificationStatus() {
     return new Promise((res, rej) => {
       if (typeof cordova == 'undefined') res();
@@ -171,36 +150,33 @@ class NCMBConf {
     return this.getLatestArticle(this.consts.sponsors);
   }
   
-  getLatestArticle(name) {
-    return new Promise((res, rej) => {
-      if (!window.navigator.onLine) {
-        return res([]);
-      }
-      let Item = this.ncmb.DataStore(name);
-      switch (name) {
-      case 'Sessions':
-        Item = Item.include('speaker').order('time');
-        break;
-      case 'Speakers':
-        Item = Item
-          .include('session')
-          .order('name')
-          .equalTo('list', 'yes');
-        break;
-      case 'Sponsors':
-        Item = Item.order('rank');
-        break;
-      }
-      Item
+  async getLatestArticle(name) {
+    if (!window.navigator.onLine) {
+      return res([]);
+    }
+    let Item = this.ncmb.DataStore(name);
+    switch (name) {
+    case 'Sessions':
+      Item = Item.include('speaker').order('time');
+      break;
+    case 'Speakers':
+      Item = Item
+        .include('session')
+        .order('name')
+        .equalTo('list', 'yes');
+      break;
+    case 'Sponsors':
+      Item = Item.order('rank');
+      break;
+    }
+    try {
+      const articles = await Item
         .fetchAll()
-        .then((articles) => {
-          localStorage.setItem(name, JSON.stringify(articles));
-          res(articles);
-        })
-        .catch((err) => {
-          rej(err);
-        });
-    });
+      localStorage.setItem(name, JSON.stringify(articles));
+      return articles;
+    } catch (err) {
+      return err;
+    }
   }
 }
 
